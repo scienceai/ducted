@@ -14,26 +14,26 @@ An example, even a stupid one like the following, should give you an idea.
 ```js
 import { pipe } from 'ducted';
 import fs from 'fs';
-let duct = pipe();
-duct.step(ctx => fs.readFile(ctx.data.source, 'utf8', (err, content) => {
-        if (err) ctx.error(err);
-        ctx.content = content;
-        ctx.done();
-    }))
-    .step(ctx => {
-        if (/unicorn/i.test(ctx.data.content)) ctx.warn('Shh, do not mention the unicorns.');
-        ctx.done();
-    })
-    .step(ctx => { ctx.data.content = ctx.data.content.toUpperCase(); ctx.done(); })
-    .step(ctx => fs.writeFile(ctx.data.output, ctx.data.content, 'utf8', (err) => {
+pipe(
+  ctx => fs.readFile(ctx.data.source, 'utf8', (err, content) => {
+          if (err) ctx.error(err);
+          ctx.content = content;
+          ctx.done();
+        }),
+  ctx => {
+          if (/unicorn/i.test(ctx.data.content)) ctx.warn('Shh, do not mention the unicorns.');
+          ctx.done();
+  },
+  ctx => { ctx.data.content = ctx.data.content.toUpperCase(); ctx.done(); },
+  ctx => fs.writeFile(ctx.data.output, ctx.data.content, 'utf8', (err) => {
             if (err) ctx.error(err);
             ctx.done();
-    }))
-  .on('duct:end', (data) => {
-    console.log('Uppercased some data');
-  })
-  .run({ source: 'in.txt', output: 'out.txt' })
-;
+        })
+)
+.on('duct:end', (data) => {
+  console.log('Uppercased some data');
+})
+.run({ source: 'in.txt', output: 'out.txt' });
 ```
 
 Obviously, the above example is pretty contrived. It would be a lot easier to just code it out
