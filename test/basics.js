@@ -1,6 +1,6 @@
 
 import assert from 'assert';
-import { default as Ducted } from '..';
+import Ducted from '..';
 
 describe('a basic pipeline', function () {
   // runs just one

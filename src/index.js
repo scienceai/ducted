@@ -1,6 +1,6 @@
 
 import { EventEmitter } from 'events';
-import { default as Context } from './context';
+import Context from './context';
 
 // events are in the duct: namespace
 // steps can be funcs that get the context object, or pipelines that are .run() with the context
@@ -59,3 +59,4 @@ export default class Ducted extends EventEmitter {
 //  - add validation support for steps (like PropTypes)
 //  - support for parallelism and dynamic steps (e.g. that run multiple times on a list of input)
 //  - documentation
+//  - handle exceptions
