@@ -1,11 +1,11 @@
 
 import assert from 'assert';
-import Ducted from '..';
+import { pipe } from '..';
 
 describe('a basic pipeline', function () {
   // runs just one
   it('should run a simple func', function (done) {
-    let duct = new Ducted();
+    let duct = pipe();
     duct.step(ctx => { ctx.data.gotIt = true; ctx.done(); });
     duct.on('duct:end', (data) => {
       assert(data.gotIt, 'ran the one step');
@@ -16,7 +16,7 @@ describe('a basic pipeline', function () {
 
   // runs all three
   it('should run several simple funcs', function (done) {
-    let duct = new Ducted();
+    let duct = pipe();
     duct.step(ctx => { ctx.data.one = 1; ctx.done(); })
         .step(ctx => { ctx.data.two = ctx.data.one + 1; ctx.done(); })
         .step(ctx => { ctx.data.three = ctx.data.two + 1; ctx.done(); })
@@ -30,9 +30,25 @@ describe('a basic pipeline', function () {
     ;
   });
 
+  // other syntax
+  it('should run steps using the immediate pipe() syntax', function (done) {
+    pipe(
+      ctx => { ctx.data.one = 1; ctx.done(); },
+      ctx => { ctx.data.two = ctx.data.one + 1; ctx.done(); },
+      ctx => { ctx.data.three = ctx.data.two + 1; ctx.done(); }
+    )
+    .on('duct:end', (data) => {
+      assert.equal(data.one, 1, 'ran first step');
+      assert.equal(data.two, 2, 'ran second step');
+      assert.equal(data.three, 3, 'ran third step');
+      done();
+    })
+    .run();
+  });
+
   // runs empty
   it('should run successfully with no step', function (done) {
-    let duct = new Ducted();
+    let duct = pipe();
     duct.on('duct:end', (data) => {
       assert(true, 'reached the end of zero steps');
       done();
@@ -42,7 +58,7 @@ describe('a basic pipeline', function () {
 
   // initialData
   it('takes initialData into account', function (done) {
-    let duct = new Ducted();
+    let duct = pipe();
     duct.step(ctx => { ctx.data.copy = ctx.data.original; ctx.done(); });
     duct.on('duct:end', (data) => {
       assert.equal(data.original, 'here', 'the initialData made it through');
@@ -54,7 +70,7 @@ describe('a basic pipeline', function () {
 
   // basic events (only warnings at this point)
   it('emits basics events', function (done) {
-    let duct = new Ducted()
+    let duct = pipe()
       , warns = []
     ;
     duct.on('duct:warn', (msg) => warns.push(msg));
@@ -70,7 +86,7 @@ describe('a basic pipeline', function () {
 
   // errors
   it('emits errors and stops the flow', function (done) {
-    let duct = new Ducted()
+    let duct = pipe()
       , seenStep = false
       , seenError = 0
     ;
@@ -93,8 +109,8 @@ describe('a basic pipeline', function () {
 
   // sub-pipelines
   it('runs sub-pipelines', function (done) {
-    let duct = new Ducted()
-      , subduct = new Ducted() // so many puns!
+    let duct = pipe()
+      , subduct = pipe() // so many puns!
     ;
     duct.step(ctx => { ctx.data.seen++; ctx.done(); });
     subduct.step(ctx => { ctx.data.seen++; ctx.data.fromSub = true; ctx.done(); });
@@ -110,7 +126,7 @@ describe('a basic pipeline', function () {
 
   // independent context
   it('has independent contexts', function (done) {
-    let duct = new Ducted()
+    let duct = pipe()
       , seen = 0
       , seenBoth = () => {
           seen++;
@@ -135,7 +151,7 @@ describe('a basic pipeline', function () {
 
   // run() returns its context
   it('should return a context from run()', function (done) {
-    let duct = new Ducted();
+    let duct = pipe();
     duct.step(ctx => { ctx.data.pristine = false; ctx.done(); });
     duct.on('duct:end', (data) => {
       assert(!data.pristine, 'step did modify');

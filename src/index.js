@@ -6,7 +6,15 @@ import Context from './context';
 // steps can be funcs that get the context object, or pipelines that are .run() with the context
 // calls to configuration methods chain (step(), on()) so that you can make nice chains
 
-export default class Ducted extends EventEmitter {
+export function pipe (...steps) {
+  let p = new PipeDuct();
+  steps.forEach(s => p.step(s));
+  return p;
+}
+
+class Ducted extends EventEmitter {}
+
+export class PipeDuct extends Ducted {
   constructor () {
     super();
     this._pipeline = [];

@@ -12,9 +12,9 @@ pipeline.
 An example, even a stupid one like the following, should give you an idea.
 
 ```js
-import Ducted from 'ducted';
+import { pipe } from 'ducted';
 import fs from 'fs';
-let duct = new Ducted();
+let duct = pipe();
 duct.step(ctx => fs.readFile(ctx.data.source, 'utf8', (err, content) => {
         if (err) ctx.error(err);
         ctx.content = content;

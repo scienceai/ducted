@@ -1,6 +1,6 @@
 {
   "name": "ducted",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "general-purpose pipeline manager",
   "main": "dist/index.js",
   "scripts": {
