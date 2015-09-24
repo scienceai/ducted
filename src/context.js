@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 
 export default class Context extends EventEmitter {
   constructor (initialData = {}) {
+    super();
     this.data = initialData;
   }
 
@@ -17,12 +18,14 @@ export default class Context extends EventEmitter {
   // an irrecoverable error has happened
   error (err) {
     if (typeof err === 'string') err = new Error(err);
-    this.emit('duct:error', err);
+    this.hasErrored = true;
+    this.emit('duct:error', err, this.data);
+    this.emit('duct:end', this.data);
   }
 
   // warning
   warn (str) {
-    this.emit('duct:warning', str);
+    this.emit('duct:warn', str);
   }
 }
 

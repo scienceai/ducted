@@ -1,20 +1,24 @@
 
 import { EventEmitter } from 'events';
-import { Context } from './context';
+import { default as Context } from './context';
 
 // events are in the duct: namespace
 // steps can be funcs that get the context object, or pipelines that are .run() with the context
+// calls to configuration methods chain (step(), on()) so that you can make nice chains
 
 export default class Ducted extends EventEmitter {
   constructor () {
+    super();
     this._pipeline = [];
   }
 
   // this can take a context, or just the data
+  // returns the context so that one can work on it
   run (initialData = {}) {
     let ctx = (initialData instanceof Context) ? initialData : new Context(initialData);
     this._current = -1;
     this._runNext(ctx);
+    return ctx;
   }
 
   _runNext (ctx) {
@@ -23,8 +27,23 @@ export default class Ducted extends EventEmitter {
       this.emit('duct:end', ctx.data);
       return;
     }
-    let step = this._pipeline[this._current];
-    step.once('duct:end', () => this._runNext(ctx));
+    let step = this._pipeline[this._current]
+      , onError = (err, data) => {
+          this.emit('duct:error', err, data);
+          this.emit('duct:end', data);
+        }
+      , onWarn = (msg) => this.emit('duct:warn', msg)
+      , onEnd = () => {
+          ctx.removeListener('duct:warn', onWarn);
+          if (!ctx.hasErrored) {
+            ctx.removeListener('duct:error', onError);
+            this._runNext(ctx);
+          }
+        }
+    ;
+    ctx.once('duct:end', onEnd);
+    ctx.once('duct:error', onError);
+    ctx.on('duct:warn', onWarn);
     if (step instanceof Ducted) step.run(ctx);
     else step(ctx);
   }
@@ -32,9 +51,11 @@ export default class Ducted extends EventEmitter {
   // add a function or sub-pipeline to the pipeline
   step (func) {
     this._pipeline.push(func);
+    return this;
   }
 }
 
 // TODO:
 //  - add validation support for steps (like PropTypes)
 //  - support for parallelism and dynamic steps (e.g. that run multiple times on a list of input)
+//  - documentation
