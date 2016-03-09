@@ -5,9 +5,8 @@ The purpose of `ducted` is to act as a general-purpose pipeline manager. A pipel
 steps, each of which processes a context (synchronously or asynchronously). A step is typically
 either a function or itself a pipeline.
 
-It essentially tries to hit a sweet spot not far from streams and promises, but without doing
-your head in and with a number of additional facilities that are useful when implementing a
-pipeline.
+Pipelines can be dynamically composed, which means that the shape of a pipeline can change at
+runtime based on its input.
 
 An example, even a stupid one like the following, should give you an idea.
 
@@ -39,3 +38,51 @@ pipe(
 Obviously, the above example is pretty contrived. It would be a lot easier to just code it out
 without `ducted`. But `ducted` starts to shine in more elaborate pipelines, with more complex
 flows, and when code is reused and pipelines get composed.
+
+## Installation
+
+The usual `npm install ducted`.
+
+## API
+
+Ducted is largely a chained API, with event handlers to communicate back up the pipeline structure.
+
+First, import it:
+
+```js
+import { pipe } from 'ducted';
+// or in ES5
+var pipe = require('ducted').pipe;
+```
+
+### `pipe(...steps)`
+
+You can pass in as many steps as you want to `pipe()` (including none) and they will be configured
+as steps in the pipeline, in the given order. In fact, `pipe(foo, bar)` is the same as calling
+`pipe().addStep(foo).addStep(bar)`. The manner in which steps are called is detailed below.
+
+### `addStep(step)`
+
+Adds a single step to the end of the pipeline.
+
+### `on('event', handler)`
+
+Registers a handler for a given event. Some `ducted`-specific events are dispatched, but in general
+any step can dispatch events up the nested pipelines. This is in fact an `EventEmitter` subclass,
+so the usual event methods are available.
+
+### `run(initialData)`
+
+Actually runs the pipeline, using the provided data as what is given to the first step in the
+pipeline.
+
+### events: ducted:end, ducted:warn, ducted:error
+
+These events are dispatched at various moments:
+
+* `ducted:end`. The pipeline finished, not necessarily successfully (i.e. an error will also trigger
+  this). It gets the data in the state at which the pipeline ends.
+* `ducted:warn`. A warning was emitted (passed as a string).
+* `ducted:error`. A fatal error, the pipeline was interrupted.
+
+### Steps and Contexts

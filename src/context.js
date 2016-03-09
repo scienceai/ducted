@@ -12,20 +12,20 @@ export default class Context extends EventEmitter {
 
   // signal that the module is done and move on to the next
   done () {
-    this.emit('duct:end', this.data);
+    this.emit('ducted:end', this.data);
   }
 
   // an irrecoverable error has happened
   error (err) {
     if (typeof err === 'string') err = new Error(err);
     this.hasErrored = true;
-    this.emit('duct:error', err, this.data);
-    this.emit('duct:end', this.data);
+    this.emit('ducted:error', err, this.data);
+    this.emit('ducted:end', this.data);
   }
 
   // warning
   warn (str) {
-    this.emit('duct:warn', str);
+    this.emit('ducted:warn', str);
   }
 }
 

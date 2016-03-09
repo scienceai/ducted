@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events';
 import Context from './context';
 
-// events are in the duct: namespace
+// events are in the ducted: namespace
 // steps can be funcs that get the context object, or pipelines that are .run() with the context
 // calls to configuration methods chain (step(), on()) so that you can make nice chains
 
@@ -12,7 +12,7 @@ export function pipe (...steps) {
   return p;
 }
 
-class Ducted extends EventEmitter {}
+export class Ducted extends EventEmitter {}
 
 export class PipeDuct extends Ducted {
   constructor () {
@@ -32,26 +32,26 @@ export class PipeDuct extends Ducted {
   _runNext (ctx) {
     this._current++;
     if (this._current >= this._pipeline.length) {
-      this.emit('duct:end', ctx.data);
+      this.emit('ducted:end', ctx.data);
       return;
     }
     let step = this._pipeline[this._current]
       , onError = (err, data) => {
-          this.emit('duct:error', err, data);
-          this.emit('duct:end', data);
+          this.emit('ducted:error', err, data);
+          this.emit('ducted:end', data);
         }
-      , onWarn = (msg) => this.emit('duct:warn', msg)
+      , onWarn = (msg) => this.emit('ducted:warn', msg)
       , onEnd = () => {
-          ctx.removeListener('duct:warn', onWarn);
+          ctx.removeListener('ducted:warn', onWarn);
           if (!ctx.hasErrored) {
-            ctx.removeListener('duct:error', onError);
+            ctx.removeListener('ducted:error', onError);
             this._runNext(ctx);
           }
         }
     ;
-    ctx.once('duct:end', onEnd);
-    ctx.once('duct:error', onError);
-    ctx.on('duct:warn', onWarn);
+    ctx.once('ducted:end', onEnd);
+    ctx.once('ducted:error', onError);
+    ctx.on('ducted:warn', onWarn);
     if (step instanceof Ducted) step.run(ctx);
     else step(ctx);
   }
